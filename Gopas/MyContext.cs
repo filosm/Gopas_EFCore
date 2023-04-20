@@ -3,6 +3,7 @@ using Gopas.Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 
 namespace Gopas;
 
@@ -75,5 +76,19 @@ partial class MyContext : DbContext
 
         // HasNoKey
         modelBuilder.Entity<MojeNeco>().HasNoKey();
+
+        // Seeding
+        modelBuilder.Entity<Owner>().HasData(new Owner
+        {
+            Id = -1,
+            IsActive = true,
+            FirstName = "Test",
+        });
+
+        // Shared entities
+        var testConf = modelBuilder.SharedTypeEntity<Dictionary<string, object>>("Test"); // Toto je obecný zápis. Namísto Dictonary tam může být konkrétní typ
+                                                                                          // a to třeba TestPropertyBag
+        testConf.Property<int>("Id");
+        testConf.Property<string>("Name");
     }
 }

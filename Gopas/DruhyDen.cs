@@ -47,5 +47,11 @@ public class DruhyDen
         db.Set<MojeNeco>().FromSqlRaw("Select FirstName as Name from T_Owner")
             .Where(x => x.Name != string.Empty)
             .Load();
+
+        // Query tags (neřekl k čemu to je, tak asi zase pogooglit)
+        db.Set<MojeNeco>().FromSqlRaw("Select FirstName as Name from T_Owner")
+            .Where(x => x.Name != string.Empty)
+            .TagWithCallSite()
+            .Load();
     }
 }

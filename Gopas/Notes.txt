@@ -14,3 +14,41 @@
 - ChangeTracker: když běží app dlouho (a DbContext se neukončuje - ale mohl by), může spotřebovat velké množství prostředků, když přes DbContext proženeme velké množství objektů
 - Multitentant: využívá HasQueryFilter. Tip: do konstruktoru pro DbContext předat Id tenanta a podle něj pak filtrovat jednotlivé dotazy
 - Table Splitting: "rozřeže" tabulku s mnoha sloupci na různě obsáhlé entity
+- Parametry do konstruktoru >> je to mžné (podrobný popis je na webu v dokumentaci pro EF Core - "Constructors")
+	- EF Core preferuje konstruktor, kde je nejvíce parametrů.
+	- Lze injektovat service (třeba i samotný DbContext)
+	- DbContext, ILazyLoader, Action<object, sttring>, IEntityType
+- Seeding:
+	- .HasData() < je třeba zadávat i s Id (nesjou generované automaticky),
+	- využívá se pro statická data,
+	- často bývá, že statická (systémová) data mají záporný Id,
+- reference nullable: EF Core s tím již tak umí pracovat. Nastavuje se buď pro celou solution a nebo jen pro soubor a má to vliv na vše v tím obsažené. Takže se to projeví například i v migracích!
+- vykřičníky u Warnings - říká se jim "sakra" (možná se to píše jinak)
+- Temporary tables: .IsTemporar() - lze třídit podle toho, zda je záznam "živý" / "neživý" od kdy do kdy byl "živý"
+- JSON sloupce:
+	- .ToJson()
+	- při dotazu na jednu value obsaženoui v JSON datech to umí EF převést na query, kde se ptá přímo na value dané property přímo v query. To stejné umí i pro update (pracovat jen s vybranými proměnnými - JSON_MODIFY).
+- Compiled models:
+	- nepodporuje nějaké věci, jako třeba Query Filtry,...
+	- musí být nainstalvaný nástroj (tool) "dotnet ef" a v projektu nainstalovaný nuget *.EfCore.Design
+	- hodí se pro velké modely a velkým množstvím entit. Modely jsou předkopilované a negenerují se až při použití
+	- při použití optimálí přidat kompilaci do "Build eventu"
+	- před nasazením je dobré porovnat výkon před a po
+- Event counter: lze pomocí něho dobře monitorovat co dělá EF. Jako kolik se spustilo query, kolik SaveChanges, kolik je aktivních DbContextů,..
+- Dědičnost
+	Př. objekty a dědění:
+		> Vozidlo
+		> Auto: Vozidlo
+		> Kolo : Vozidlo
+	- TPH: Table per Hierarchy (asi nejvíce využívané)
+		Př:
+			Id, Discriminator, Vozidlo*, Auto*, Kolo*			
+	- TPT: Table per Type
+		Př:
+			Id, Vozidlo*
+			Id(FK), Auto*
+			Id(FK), Kolo*
+	- TPC: Table per Concrete
+		Př:
+			Id, Vozidlo*, Auto*
+			Id, Vozidlo*, Kolo*
