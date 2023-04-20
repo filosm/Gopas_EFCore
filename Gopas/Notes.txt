@@ -1,0 +1,16 @@
+﻿Poznámky ze školení:
+
+- Funkce vykonávané na straně SQL jsou rychlejší, než když se budou vykonávat až v kódu
+- Ne vše se v query zadávané jako parametr přeloží jako parametr, jsou věci, které jsou vyžadované jako konstanta, například jméno tabulky
+- EF sám o sobě neukládá do cache vracené entity, ale překlady linq > query (string formát), aby se s tím vždy nezdržoval
+- když to je možné, tak co nejvíce využívat projekce. tj. třeba: select (x => new { x.FirstName, x. LastName })
+- pokud ve dvou dotazech v je vrácená stejná entita, ať samostatně či v kolekci, tak se jedná o stejnou instanci objektu. Pokud je tam však obyčejný "AsNoTracking" tak bacha, jsou to dvě rozdílené instance
+- lazyload: donačtě data až když jsou potřeba. Výhoda: nenačte velký balík dat. Nevýhoda: mnoho dotazů do db.
+- implicitní lazyloading: lektor jej považuje za celkem zlo (jako hodně velké zlo, které se špatně hlídá). Donačítá sám, ale nemám pod kontrolou kdy to jde do databáze a kdy ne a tím to může zdržovat. Je to blokující aplikace - nemá async.
+- pro transparentní (explicitní) lazyloading je třeba balíček EFCore.Proxies a v DbContextu je třeba zapnout UseLazyLoadingProxies. A v entitách jsou vazbící objekty jako "virtual"
+- preferuje explicitní lazyload < je to vidět na první dobrou a dobře se to kontroluje
+- při dotazu se provede spočítání hashe a hledání v cache, to může být časově v některých kritických aplikacích drahé >> je možné využít EF.CompileQuery
+- ChangeTracker: uchovává původní hodnoty, aktuální hodnoty a změněné objekty
+- ChangeTracker: když běží app dlouho (a DbContext se neukončuje - ale mohl by), může spotřebovat velké množství prostředků, když přes DbContext proženeme velké množství objektů
+- Multitentant: využívá HasQueryFilter. Tip: do konstruktoru pro DbContext předat Id tenanta a podle něj pak filtrovat jednotlivé dotazy
+- Table Splitting: "rozřeže" tabulku s mnoha sloupci na různě obsáhlé entity
