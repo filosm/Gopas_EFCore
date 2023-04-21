@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.ComponentModel;
+using System.Linq;
 
 namespace Gopas.Dedicnost;
 
@@ -10,10 +10,16 @@ public class Dedicnost
     public static void Main()
     {
         using var db = new MyContext();
+        db.Database.EnsureDeleted();
         db.Database.EnsureCreated();
 
         db.Kola.Add(new Kolo { Name = "SP", Vaha = 15 });
         db.Auta.Add(new Auto { Name = "Q7", PocteLidi = 3 });
+        db.SaveChanges();
+
+        var auta = db.Auta.ToList();
+        var kola = db.Kola.ToList();
+        var vozidla = db.Vozidla.ToList();
     }
 }
 
@@ -47,6 +53,59 @@ class MyContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // TPH mapování
+        modelBuilder = TPH_Mapping(modelBuilder);
+
+        // TPT mapování
+        //modelBuilder = TPT_Mapping(modelBuilder);
+
+        // TPC mapování
+        //modelBuilder = TPC_Mapping(modelBuilder);
+    }
+
+    // TPC se moc nepoužívá - viz poznámky
+    private ModelBuilder TPC_Mapping(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Vozidlo>(b =>
+        {
+            b.UseTpcMappingStrategy();
+        });
+
+        modelBuilder.Entity<Auto>(b =>
+        {
+            b.ToTable("TPC_Auta");
+        });
+
+        modelBuilder.Entity<Kolo>(b =>
+        {
+            b.ToTable("TPC_Kola");
+        });
+
+        return modelBuilder;
+    }
+
+    private ModelBuilder TPT_Mapping(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Vozidlo>(b =>
+        {
+            b.ToTable("TPT_Vozidla");
+        });
+
+        modelBuilder.Entity<Auto>(b =>
+        {
+            b.ToTable("TPT_Auta");
+        });
+
+        modelBuilder.Entity<Kolo>(b =>
+        {
+            b.ToTable("TPT_Kola");
+        });
+
+        return modelBuilder;
+    }
+
+    private ModelBuilder TPH_Mapping(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<Vozidlo>(b =>
         {
             b.ToTable("TPH_Vozidla");
@@ -65,6 +124,8 @@ class MyContext : DbContext
             b.HasBaseType<Vozidlo>();
             b.HasDiscriminator<string>("D").HasValue("KO"); // << Podle toho se pak pozná, zda je to kolo a nebo auto
         });
+
+        return modelBuilder;
     }
 }
 

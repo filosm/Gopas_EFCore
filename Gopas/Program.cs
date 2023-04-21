@@ -1,4 +1,7 @@
 ﻿using Gopas;
+using Gopas.Dedicnost;
 
 //PrvniDen.Main();
-DruhyDen.Main();
+//DruhyDen.Main();
+//Dedicnost.Main();
+TretiDen.Main();

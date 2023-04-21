@@ -64,5 +64,11 @@ public class OwnerConfiguration : IEntityTypeConfiguration<Owner>
         builder.Property(x => x.Duration)
             .HasConversion<DurationConverter>(/*new DurationComparer()*/); // DurationComparer - využívá se k tomu aby se neprováděl například update, když je hodnota stejná.
                                                                            // Tak jak je to teď bez konvertoru se provede update vždy při změně i když je to stejná hodnota
+
+        // Souběžnost
+        builder.Property(x => x.Version)
+            .HasColumnType("rowversion")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
     }
 }

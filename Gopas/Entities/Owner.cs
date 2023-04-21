@@ -14,4 +14,7 @@ public class Owner
     public ICollection<Dog> Dogs { get; set; }
     public bool IsActive { get; set; }
     public Duration Duration { get; set; }
+
+    // viz. Souběžnost
+    public byte[] Version { get; set; }
 }

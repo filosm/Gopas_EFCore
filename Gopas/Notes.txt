@@ -1,4 +1,5 @@
-﻿Poznámky ze školení:
+﻿Lektor: Činčura Jiří
+Poznámky ze školení:
 
 - Funkce vykonávané na straně SQL jsou rychlejší, než když se budou vykonávat až v kódu
 - Ne vše se v query zadávané jako parametr přeloží jako parametr, jsou věci, které jsou vyžadované jako konstanta, například jméno tabulky
@@ -35,15 +36,16 @@
 	- při použití optimálí přidat kompilaci do "Build eventu"
 	- před nasazením je dobré porovnat výkon před a po
 - Event counter: lze pomocí něho dobře monitorovat co dělá EF. Jako kolik se spustilo query, kolik SaveChanges, kolik je aktivních DbContextů,..
-- Dědičnost
+
+* Dědičnost
 	Př. objekty a dědění:
 		> Vozidlo
 		> Auto: Vozidlo
 		> Kolo : Vozidlo
 	- TPH: Table per Hierarchy (asi nejvíce využívané)
 		Př:
-			Id, Discriminator, Vozidlo*, Auto*, Kolo*			
-	- TPT: Table per Type
+			Id, Discriminator, Vozidlo*, Auto*, Kolo*			<< jako Discriminator doporučuje lektor využít char(2)
+	- TPT: Table per Type << výhoda: nevzniká velká řídká tabulka, nevýhoda: vícero tabulek, insertování pokud je dědičnost příliš hloboká (insert do mnoha tabulek)
 		Př:
 			Id, Vozidlo*
 			Id(FK), Auto*
@@ -52,3 +54,65 @@
 		Př:
 			Id, Vozidlo*, Auto*
 			Id, Vozidlo*, Kolo*
+	
+	- TPC mapování: kolize id když se vypisuje rodič (potomci se číslují na sobě nezávisle a vznickají tam kolize mezi Id). Lze vyřešit Sekvencemi, ale moc se
+	nepoužívá, je to prasopes.
+
+* Sacffolding
+- vygeneruje DbContext, objekty podle DB (řekl bych, že jde o Db first)
+- provádí se to přes příkazovou řádku
+- je třeba nainstalovat nuget *.EFCore.Design
+
+* Migrace
+- kromě jiného je to v podstatě také verzování stavu DB
+- příkazy:
+	- dotnet ef migrations add <name>
+	- dotnet ef migrations remove
+	- dotnet ef database update <name>
+	- dotnet ef migrations script << vygeneruje sql script. Dobré přidat přepínač
+		> "-i" který zajistí, aby se vygeneroval script s podmiňováním, zda již není tato migrace na serveru
+	- dotnet ef migrations bundle << vytvoří se exe soubor, který po supštění provede update podle migrací
+- ve vytvořené migraci v migration builderu je i migrationBuilder.Sql() kde můžu v případě nějaké potřeby přímo zapsat SQL skript, který chci aby se provedl
+- když chci udělat úplně čistou db mohu udělat update s parametrem 0. Vrátí DB zpět kdy nebyla aplikována ještě žádná migrace
+- API (dogooglit)
+- __EFMigrationsHistory: jak napovídá název. Ukládá se kdy se prováděla jaká migrace
+- v případě distribuovaných služeb které přistupojí do jendé db, je třeba nějak zmenežhovat jak se služby budou chovat. Která provede migraci a která bude čekat.
+- IHistoryReposiotory: mohu zde zjistit historii migrací
+
+* Transakce
+- Možnosti:
+	- BeginTransaction
+	- UseTransaction
+	- SaveChanges / AcceptAllChanges
+- Transakce jsou přímo nad DB. Nejsou nad kontextem.
+
+* Souběžnost
+- Konflikt:
+	- jedna položka je změněna dvěmi či více procesy
+
+- Přístupy:
+	- pesimistický: zamykání (není v EF podporováno - neškáluje se)
+	- optimistický: testování dat během ukládání (přidání sloupce s verzí a nastavení že je to .IsConcurrencyToken())
+- kolize mohou nastat jen mezi update & delete
+- pokud je kolize v Tokenech. Tzn. že token už není stejný, který byl když jsem si entitu vyčítal > vyhodí se EX.
+- Strategie řešení konfliktů:
+	- client wins
+	- store wins
+
+* Výkonost
+- zásadně ovlivňuje například: indexování, atd.
+- dotazování: optimalizace dotazů. Překlad z LINQu nemusí být vždy optimální.
+- DB evoluce. Video: Lukas Edler - How modern SQL databases Come up with....
+- Doporučení:
+	- nepoužívat explicitní lazyloading,
+	- omezit balík dat (projekce), které selektujeme (i vytvážení objektu v app zabírá hodně režije). Vracet pouze potřebné sloupce,
+	- zaměřit se co a jak se provádí >> optimalizace procesů,
+	- využívat funkce a pohledy (views) - odbavení na straně serveru je rychlejší,
+	- avšak jsou situace, kdy je filtrování apod. rychlejší na straně app (větší škála možností - výpočetní, apod.)
+	- ve web app může být DB kontext pouze s životností requestu,
+	- když by DbContext měl být už příliš rozsýhlý => bouded context (třeba rozdělení kontextů podle entit),
+	- využít případně query cache,
+	- používat jeden DbContext pro více vláken není dobrý nápad. Pro každé vlákno je třeba udělat separátní instanci DbContextu (lektor oznažil jako cestu do pekel)!! > typ: Transient
+
+* Dependenci injection
+- lze v program.cs přiřadit rovnou service >> builder.Services.AddDbContext() - jsou tam i další možnosti
