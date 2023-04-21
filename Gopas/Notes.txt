@@ -1,6 +1,12 @@
 ﻿Lektor: Činčura Jiří
+https://eprezence.gopas.cz/Classroom/EnterAccessCode - 111-876
+
 Poznámky ze školení:
 
+- TIP: EFCorePowerTools:
+	- https://github.com/ErikEJ/EFCorePowerTools
+	- https://marketplace.visualstudio.com/items?itemName=ErikEJ.EFCorePowerTools
+- EF Core je ORM
 - Funkce vykonávané na straně SQL jsou rychlejší, než když se budou vykonávat až v kódu
 - Ne vše se v query zadávané jako parametr přeloží jako parametr, jsou věci, které jsou vyžadované jako konstanta, například jméno tabulky
 - EF sám o sobě neukládá do cache vracené entity, ale překlady linq > query (string formát), aby se s tím vždy nezdržoval
@@ -116,3 +122,6 @@ Poznámky ze školení:
 
 * Dependenci injection
 - lze v program.cs přiřadit rovnou service >> builder.Services.AddDbContext() - jsou tam i další možnosti
+
+* 21. ročník konference TechEd
+- https://www.gopas.cz/teched
